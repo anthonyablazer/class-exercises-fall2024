@@ -4,26 +4,104 @@ import { assertPrint, runAllTests } from "./helpers.js";
 function testHelloWorld() {
     return assertPrint(
         helloWorld() === "Hello world!",
-        'it returns "Hello world!"'
+        'it returns "Hello world!"',
     );
 }
 
 function testPaperBeatsRock() {
     return assertPrint(
         rps("rock", "paper") === "Paper wins!",
-        "paper beats rock"
+        "paper beats rock",
     );
 }
 
-function testPaperBeatsRockCommutes() {
+function testPaperBeatsRockFlipped() {
     return assertPrint(
         rps("paper", "rock") === "Paper wins!",
-        "paper beats rock (flipped)"
+        "paper beats rock (flipped)",
     );
 }
 
-// add more test functions here to exhaustively test your rps function...
+function testScissorsBeatsPaper() {
+    return assertPrint(
+        rps("paper", "scissors") === "Scissors wins!",
+        "scissors beats paper",
+    );
+}
 
-// Once you have defined each test function, don't forget to
-// add the function definition to the test harness:
-runAllTests([testHelloWorld, testPaperBeatsRock, testPaperBeatsRockCommutes]);
+function testScissorsBeatsPaperFlipped() {
+    return assertPrint(
+        rps("scissors", "paper") === "Scissors wins!",
+        "scissors beats paper (flipped)",
+    );
+}
+
+function testRockBeatsScissors() {
+    return assertPrint(
+        rps("scissors", "rock") === "Rock wins!",
+        "rock beats scissors",
+    );
+}
+
+function testRockBeatsScissorsFlipped() {
+    return assertPrint(
+        rps("rock", "scissors") === "Rock wins!",
+        "rock beats scissors (flipped)",
+    );
+}
+
+function testTieRock() {
+    return assertPrint(rps("rock", "rock") === "Tie!", "rock ties with rock");
+}
+
+function testTiePaper() {
+    return assertPrint(
+        rps("paper", "paper") === "Tie!",
+        "paper ties with paper",
+    );
+}
+
+function testTieScissors() {
+    return assertPrint(
+        rps("scissors", "scissors") === "Tie!",
+        "scissors ties with scissors",
+    );
+}
+
+function testInvalidInput() {
+    return assertPrint(
+        rps("rock", "lizard") === "Invalid",
+        "invalid input (rock, lizard)",
+    );
+}
+
+function testInvalidInputBoth() {
+    return assertPrint(
+        rps("lizard", "spock") === "Invalid",
+        "invalid input (lizard, spock)",
+    );
+}
+
+function testEmptyInput() {
+    return assertPrint(
+        rps("", "") === "Invalid",
+        "invalid input (empty strings)",
+    );
+}
+
+// Add each test function to the runAllTests function:
+runAllTests([
+    testHelloWorld,
+    testPaperBeatsRock,
+    testPaperBeatsRockFlipped,
+    testScissorsBeatsPaper,
+    testScissorsBeatsPaperFlipped,
+    testRockBeatsScissors,
+    testRockBeatsScissorsFlipped,
+    testTieRock,
+    testTiePaper,
+    testTieScissors,
+    testInvalidInput,
+    testInvalidInputBoth,
+    testEmptyInput,
+]);
