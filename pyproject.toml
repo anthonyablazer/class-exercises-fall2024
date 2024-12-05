@@ -1,0 +1,17 @@
+[tool.poetry]
+name = "class-exercises-fall2024"
+version = "0.1.0"
+description = ""
+authors = ["anthonyablazer <ablazer1@unca.edu>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+pytest = "^8.3.3"
+flake8 = "^7.1.1"
+isort = "^5.13.2"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
