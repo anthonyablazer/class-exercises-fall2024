@@ -2,32 +2,59 @@ const rootURL = "http://localhost:8000";
 
 // React Task 1:
 export async function fetchUser(username) {
-    // replace this code with functionality that actually
-    // queries that correct endpoint:
-    return {
-        id: 18,
-        username: "svanwart",
-        email: "svanwart@unca.edu",
-        first_name: "Sarah",
-        last_name: "Van Wart",
-    };
+    const url = `${rootURL}/api/users/${username}`;
+    try {
+        const response = await fetch(url);
+        if (!response.ok) {
+            throw new Error(`Failed to fetch user: ${response.statusText}`);
+        }
+        const user = await response.json();
+        return user;
+    } catch (error) {
+        console.error("Error fetching user:", error);
+        throw error; // Re-throwing the error for higher-level handling
+    }
 }
 
 // React Task 3:
 export async function fetchCourses(options = {}) {
-    let baseURL = `${rootURL}/api/courses?`;
-    if (options.department) {
-        baseURL += `department=${options.department}&`;
+    let baseURL = `${rootURL}/api/courses/?`;
+
+    // Add existing parameters
+    if (options.title) {
+        baseURL += `title=${options.title}&`;
     }
     if (options.instructor) {
         baseURL += `instructor=${options.instructor}&`;
     }
+    if (options.department) {
+        baseURL += `department=${options.department}&`;
+    }
+
     if (options.hours) {
         baseURL += `hours=${options.hours}&`;
     }
-    if (options.title) {
-        baseURL += `title=${options.title}&`;
+
+
+    // Add new parameters
+    if (options.classification) {
+        // Append multiple designations, if provided
+        options.classification.forEach((category) => {
+            baseURL += `${category}=true&`;
+        });
     }
+    if (options.days) {
+        // Join days into a comma-separated string
+        baseURL += `days=${options.days.join(",")}&`;
+    }
+    if (options.openOnly !== undefined) {
+        // Add boolean for open courses
+        baseURL += `open_courses=${options.openOnly}&`;
+    }
+
+    // Remove trailing '&' if it exists
+    baseURL = baseURL.endsWith("&") ? baseURL.slice(0, -1) : baseURL;
+
     console.log(baseURL);
     const response = await fetch(baseURL);
     const courses = await response.json();
