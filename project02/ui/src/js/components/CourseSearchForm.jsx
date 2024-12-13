@@ -1,18 +1,26 @@
 import { React, useState, useEffect } from "react";
-import {
-    Button,
-    Form,
-    Input,
-    InputNumber,
-    Select,
-    Checkbox,
-    Row,
-    Col,
-    Switch,
-    Space,
-} from "antd";
+import { Button, Form, Input, InputNumber, Select, Checkbox, Row, Col, Switch, Space } from "antd";
 
 export default function CourseSearchForm({ fetchCourses }) {
+    const [departments, setDepartments] = useState([]);  // State to hold department list
+
+    // Fetch departments from API
+    useEffect(() => {
+        async function fetchDepartments() {
+            try {
+                const response = await fetch("http://localhost:8000/api/departments");
+                if (!response.ok) {
+                    throw new Error("Failed to fetch departments");
+                }
+                const data = await response.json();
+                setDepartments(data);  // Set the departments in state
+            } catch (error) {
+                console.error("Error fetching departments:", error);
+            }
+        }
+        fetchDepartments();
+    }, []);  // Empty dependency array to run once on component mount
+
     const classificationOpts = [
         { key: "fys", value: "First Year Seminar" },
         { key: "di", value: "Diversity Intensive" },
@@ -25,7 +33,6 @@ export default function CourseSearchForm({ fetchCourses }) {
     const handleFormSubmit = (formData) => {
         console.log("Here's the form data:", formData);
         // fetchCourses is a function defined in the parent component (App.jsx).
-        // It was passed into this component as a prop.
         fetchCourses(formData);
     };
 
@@ -72,19 +79,12 @@ export default function CourseSearchForm({ fetchCourses }) {
                     <Form.Item label="Department" name="department">
                         <Select>
                             <Select.Option value="">Any</Select.Option>
-
-                            {/* React Task 2:
-                                replace these hardcoded ones with ones 
-                                that are coming from the /api/departments endpoint. 
-                                You will need to use the useEffect and useState React 
-                                functions. 
-                            */}
-                            <Select.Option key="CSCI" value="CSCI">
-                                CSCI
-                            </Select.Option>
-                            <Select.Option key="NM" value="NM">
-                                NM
-                            </Select.Option>
+                            {/* Dynamically generate departments */}
+                            {departments.map((dept) => (
+                                <Select.Option key={dept} value={dept}>
+                                    {dept}
+                                </Select.Option>
+                            ))}
                         </Select>
                     </Form.Item>
 

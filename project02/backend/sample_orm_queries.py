@@ -1,10 +1,10 @@
 import asyncio
 
-from sqlalchemy import select  # , or_
+from sqlalchemy import select, distinct  # , or_
 from sqlalchemy.orm import joinedload, selectinload
 
 from db import AsyncSessionLocal
-from models import Course, Schedule
+from models import Course, Schedule, User
 
 """
 Documentation:
@@ -94,6 +94,71 @@ async def print_schedules(db: AsyncSessionLocal):
             print()
 
 
+# ++++++++++++++++++++++++
+#   TEST 2 ANSWERS
+# ++++++++++++++++++++++++
+
+"""
+Print all usernames in the system
+"""
+async def show_usernames(db: AsyncSessionLocal):
+    try:
+        # Query all usernames from the User model
+        query = select(User.username).order_by(User.username)
+        result = await db.execute(query)
+        
+        # Extract and print usernames
+        usernames = result.scalars().all()
+        print("Usernames in the system:")
+        for username in usernames:
+            print(f"- {username}")
+    except Exception as e:
+        print(f"Error querying usernames: {e}")
+
+
+"""
+Prints a distinct list of departments
+"""
+async def show_distinct_deparments(db: AsyncSessionLocal):
+    try:
+        # Query distinct departments from the Course model
+        query = select(distinct(Course.department)).order_by(Course.department)
+        result = await db.execute(query)
+        
+        # Extract and print unique departments
+        departments = result.scalars().all()
+        print("Unique departments:")
+        for department in departments:
+            print(f"- {department}")
+    except Exception as e:
+        print(f"Error querying departments: {e}")
+
+
+"""
+Prints the CRN and title of courses in the CSCI department that are currently open (not full).
+"""
+async def show_open_cs_courses(db: AsyncSessionLocal):
+    try:
+        # Query open CSCI courses from the Course model
+        query = (
+            select(Course.crn, Course.title)
+            .where(Course.department == "CSCI", Course.enrollment_current < Course.enrollment_max)
+            .order_by(Course.crn)
+        )
+        result = await db.execute(query)
+        
+        # Extract and print open courses
+        open_courses = result.all()
+        print("Open CSCI courses:")
+        for crn, title in open_courses:
+            print(f"- CRN: {crn}, Title: {title}")
+    except Exception as e:
+        print(f"Error querying open CSCI courses: {e}")
+
+
+
+
+
 async def main():
     # create a DB session
     db = AsyncSessionLocal()
@@ -102,6 +167,10 @@ async def main():
     await show_courses(db)
     await show_courses_with_table_joins(db)
     await print_schedules(db)
+    # New functions
+    await show_usernames(db)
+    await show_distinct_deparments(db)
+    await show_open_cs_courses(db)
 
     await db.close()
 
@@ -217,3 +286,4 @@ if __name__ == "__main__":
 # if task is not None:
 #     session.delete(task)
 #     session.commit()
+

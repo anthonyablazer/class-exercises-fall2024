@@ -35,18 +35,22 @@ async def startup():
 # Task 1
 @app.get("/api/departments/", response_model=List[str])
 async def get_department_codes(db: AsyncSession = Depends(get_db)):
-    # replace with your code...
-    return []
+    # Query distinct department codes from the Course model
+    result = await db.execute(select(models.Course.department).distinct())
+    departments = result.scalars().all()
+    return departments
 
 
 # Task 2
-# Note: replace response_model=object with response_model=User once you've got this working
-@app.get("/api/users/{username}", response_model=object)
-async def get_users_by_username(
-    username: str, db: AsyncSession = Depends(get_db)
-):
-    # replace with your code...
-    return {}
+@app.get("/api/users/{username}", response_model=serializers.User)
+async def get_users_by_username(username: str, db: AsyncSession = Depends(get_db)):
+    result = await db.execute(
+        select(models.User).where(models.User.username == username)
+    )
+    user = result.scalar_one_or_none()
+    if user is None:
+        raise HTTPException(status_code=404, detail="User not found")
+    return user
 
 
 # Task 3
@@ -56,29 +60,29 @@ async def get_courses(
     instructor: str = Query(None),
     department: str = Query(None),
     hours: int = Query(None),
+    fys: bool = Query(None),
+    di: bool = Query(None),
+    dir: bool = Query(None),
+    arts: bool = Query(None),
+    honors: bool = Query(None),
+    service: bool = Query(None),
+    open_courses: bool = Query(None),  # Filter for open courses
+    days: str = Query(None),  # Filter for matching days (e.g., "M,W,F")
     db: AsyncSession = Depends(get_db),
 ):
-
-    # base query to "courses" table that also asks SQLAlchemy
-    # to join to the "instructors" and "locations" table.
+    # Start with the base query
     query = select(models.Course).options(
         selectinload(models.Course.instructors),
         selectinload(models.Course.location),
     )
 
-    # includes a "title" filter if specified:
+    # Apply filters based on the provided parameters
     if title:
         query = query.where(models.Course.title.ilike(f"%{title}%"))
-
-    # includes a "department" filter if specified:
     if department:
         query = query.where(models.Course.department == department)
-
-    # includes an "hours" filter if specified:
     if hours:
         query = query.where(models.Course.hours == hours)
-
-    # includes an "instructors" filter if specified:
     if instructor:
         query = query.join(models.Course.instructors).where(
             or_(
@@ -87,9 +91,37 @@ async def get_courses(
             )
         )
 
-    result = await db.execute(
-        query.order_by(models.Course.department, models.Course.code)
-    )
+    # Apply filters for individual special categories
+    if fys is not None:
+        query = query.where(models.Course.first_year_seminar == fys)
+    if di is not None:
+        query = query.where(models.Course.diversity_intensive == di)
+    if dir is not None:
+        query = query.where(models.Course.diversity_intensive_r == dir)
+    if arts is not None:
+        query = query.where(models.Course.arts == arts)
+    if honors is not None:
+        query = query.where(models.Course.honors == honors)
+    if service is not None:
+        query = query.where(models.Course.service_learning == service)
+
+    # Filter only open courses
+    if open_courses is not None:
+        query = query.where(models.Course.open == open_courses)
+
+    # Filter by days (e.g., "M,W,F" for Monday, Wednesday, Friday)
+    if days:
+        day_list = days.split(",")
+        query = query.where(
+            or_(
+                *[
+                    models.Course.days.ilike(f"%{day.strip()}%") for day in day_list
+                ]
+            )
+        )
+
+    # Execute the query and return the results
+    result = await db.execute(query.order_by(models.Course.department, models.Course.code))
     courses = result.scalars().all()
     return courses
 
@@ -275,3 +307,18 @@ async def add_course_to_schedule(
     )
     schedule = result.scalar_one_or_none()
     return schedule
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
